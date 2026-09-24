@@ -28,7 +28,8 @@
                 <button id="btnInstalar" class="hidden bg-indigo-700 hover:bg-indigo-800 text-white px-3 py-2 rounded-xl text-sm font-medium transition items-center gap-1">
                     <i class="fa-solid fa-download"></i> Instalar
                 </button>
-                <button onclick="abrirModal()" class="bg-indigo-500 hover:bg-indigo-400 text-white px-3.5 py-2 rounded-xl text-sm font-medium shadow transition flex items-center gap-1">
+                <!-- Botón Nuevo Corregido -->
+                <button type="button" onclick="abrirModal()" class="bg-indigo-500 hover:bg-indigo-400 text-white px-3.5 py-2 rounded-xl text-sm font-medium shadow transition flex items-center gap-1">
                     <i class="fa-solid fa-plus"></i> Nuevo
                 </button>
             </div>
@@ -59,7 +60,7 @@
         <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <h2 id="modalTitulo" class="text-lg font-bold text-slate-800">Agregar Crédito</h2>
-                <button onclick="cerrarModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+                <button type="button" onclick="cerrarModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
             </div>
             
             <form id="formCredito" onsubmit="guardarCredito(event)" class="space-y-4">
@@ -140,8 +141,9 @@
         }
 
         function abrirModal(id = null) {
-            document.getElementById('modalCredito').classList.remove('hidden');
-            document.getElementById('modalCredito').classList.add('flex');
+            const modal = document.getElementById('modalCredito');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
             
             if (id !== null) {
                 document.getElementById('modalTitulo').innerText = 'Editar Crédito';
@@ -163,8 +165,9 @@
         }
 
         function cerrarModal() {
-            document.getElementById('modalCredito').classList.remove('flex');
-            document.getElementById('modalCredito').classList.add('hidden');
+            const modal = document.getElementById('modalCredito');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
         }
 
         function guardarCredito(e) {
@@ -284,7 +287,6 @@
                             </div>
                         </div>
 
-                        <!-- Bloque de Monto Total y Progreso -->
                         ${c.montoTotal ? `
                         <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center text-xs">
                             <span class="text-slate-500">Monto Inicial: <b class="text-slate-700">$${c.montoTotal.toLocaleString()}</b></span>
