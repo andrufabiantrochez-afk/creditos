@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Créditos - Andrew</title>
     
-    <!-- Meta tags para PWA -->
     <meta name="theme-color" content="#4f46e5">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mis Créditos">
 
-    <!-- Enlace al archivo manifest externo -->
     <link rel="manifest" href="./manifest.json">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -41,7 +39,7 @@
     <main class="max-w-md mx-auto p-4 space-y-4">
         <div class="grid grid-cols-2 gap-3">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                <p class="text-xs text-slate-400 font-medium uppercase">Total Mes</p>
+                <p class="text-xs text-slate-400 font-medium uppercase">Cuotas este Mes</p>
                 <p id="totalMes" class="text-lg font-bold text-slate-700">$0</p>
             </div>
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
@@ -56,7 +54,7 @@
         </div>
     </main>
 
-    <!-- Modal para Agregar Crédito -->
+    <!-- Modal para Agregar/Editar Crédito -->
     <div id="modalCredito" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4 z-50">
         <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
@@ -72,12 +70,22 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Valor Cuota ($)</label>
-                        <input type="number" id="valor" required placeholder="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">No. de Crédito / Obligación</label>
+                        <input type="text" id="numCredito" placeholder="Ej. 4589-XXX" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Día de Pago (1-31)</label>
                         <input type="number" id="diaPago" min="1" max="31" required placeholder="Ej. 15" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Valor Cuota ($)</label>
+                        <input type="number" id="valor" required placeholder="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Monto Total Deuda ($)</label>
+                        <input type="number" id="montoTotal" placeholder="Ej. 5000000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
@@ -91,8 +99,8 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Notas / Referencia (Opcional)</label>
-                    <input type="text" id="notas" placeholder="Ej. Link PSE o No. obligación" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Notas / Link de pago (Opcional)</label>
+                    <input type="text" id="notas" placeholder="Ej. Link PSE o sucursal" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
                 </div>
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow transition mt-2">
                     Guardar Crédito
@@ -101,7 +109,7 @@
         </div>
     </div>
 
-    <!-- Lógica de la App -->
+    <!-- Lógica -->
     <script>
         let deferredPrompt;
         const btnInstalar = document.getElementById('btnInstalar');
@@ -140,7 +148,9 @@
                 const cred = creditos.find(c => c.id === id);
                 document.getElementById('creditoId').value = cred.id;
                 document.getElementById('nombre').value = cred.nombre;
+                document.getElementById('numCredito').value = cred.numCredito || '';
                 document.getElementById('valor').value = cred.valor;
+                document.getElementById('montoTotal').value = cred.montoTotal || '';
                 document.getElementById('diaPago').value = cred.diaPago;
                 document.getElementById('cuotaActual').value = cred.cuotaActual;
                 document.getElementById('cuotasTotales').value = cred.cuotasTotales;
@@ -163,7 +173,9 @@
             const nuevoCredito = {
                 id: id ? Number(id) : Date.now(),
                 nombre: document.getElementById('nombre').value,
+                numCredito: document.getElementById('numCredito').value,
                 valor: Number(document.getElementById('valor').value),
+                montoTotal: document.getElementById('montoTotal').value ? Number(document.getElementById('montoTotal').value) : 0,
                 diaPago: Number(document.getElementById('diaPago').value),
                 cuotaActual: document.getElementById('cuotaActual').value,
                 cuotasTotales: document.getElementById('cuotasTotales').value,
@@ -262,16 +274,26 @@
                                     <i class="fa-solid ${iconoAlerta}"></i> ${textoAlerta}
                                 </span>
                                 <h3 class="font-bold text-slate-800 text-base">${c.nombre}</h3>
+                                ${c.numCredito ? `<p class="text-xs text-indigo-600 font-medium mt-0.5"><i class="fa-solid fa-hashtag mr-1"></i>Crédito No: ${c.numCredito}</p>` : ''}
                                 ${c.notas ? `<p class="text-xs text-slate-400 mt-0.5"><i class="fa-solid fa-note-sticky mr-1"></i>${c.notas}</p>` : ''}
                             </div>
                             <div class="text-right">
+                                <p class="text-xs text-slate-400 uppercase font-medium">Cuota Mensual</p>
                                 <p class="text-base font-bold text-slate-800">$${c.valor.toLocaleString()}</p>
-                                <p class="text-xs text-slate-400">Paga el día ${c.diaPago}</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Paga el día ${c.diaPago}</p>
                             </div>
                         </div>
 
+                        <!-- Bloque de Monto Total y Progreso -->
+                        ${c.montoTotal ? `
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center text-xs">
+                            <span class="text-slate-500">Monto Inicial: <b class="text-slate-700">$${c.montoTotal.toLocaleString()}</b></span>
+                            <span class="text-indigo-600 font-semibold">Cuota ${c.cuotaActual \vert{}\vert{} '-'} de${c.cuotasTotales || '-'}</span>
+                        </div>
+                        ` : ''}
+
                         <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-xs text-slate-500">
-                            <span>Cuota: <b>${c.cuotaActual || '-'}</b> de <b>${c.cuotasTotales || '-'}</b></span>
+                            <span>Estado de cuota</span>
                             <div class="flex items-center gap-2">
                                 <button onclick="togglePagado(${c.id})" class="px-3 py-1.5 rounded-lg font-medium text-xs transition ${c.pagado ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'}">
                                     <i class="fa-solid ${c.pagado ? 'fa-rotate-left' : 'fa-check'} mr-1"></i> ${c.pagado ? 'Desmarcar' : 'Marcar Pagado'}
