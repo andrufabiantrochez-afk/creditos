@@ -5,28 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Créditos - Andrew</title>
     
-    <!-- Meta tags para PWA en móviles -->
+    <!-- Meta tags para PWA -->
     <meta name="theme-color" content="#4f46e5">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mis Créditos">
 
-    <!-- Manifiesto embebido para la instalación -->
-    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
-        %22name%22: %22Control de Créditos%22,
-        %22short_name%22: %22Créditos%22,
-        %22start_url%22:window.location.href,
-        %22display%22: %22standalone%22,
-        %22background_color%22: %22%23f8fafc%22,
-        %22theme_color%22: %22%234f46e5%22,
-        %22icons%22: [
-            {
-                %22src%22: %22https://cdn-icons-png.flaticon.com/512/2830/2830284.png%22,
-                %22sizes%22: %22512x512%22,
-                %22type%22: %22image/png%22
-            }
-        ]
-    }">
+    <!-- Enlace al archivo manifest externo -->
+    <link rel="manifest" href="./manifest.json">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -41,8 +27,7 @@
                 <p class="text-xs text-indigo-200">Control de pagos y alertas</p>
             </div>
             <div class="flex items-center gap-2">
-                <!-- Botón de Instalación Rápida -->
-                <button id="btnInstalar" onclick="instalarApp()" class="hidden bg-indigo-700 hover:bg-indigo-800 text-white px-3 py-2 rounded-xl text-sm font-medium transition items-center gap-1">
+                <button id="btnInstalar" class="hidden bg-indigo-700 hover:bg-indigo-800 text-white px-3 py-2 rounded-xl text-sm font-medium transition items-center gap-1">
                     <i class="fa-solid fa-download"></i> Instalar
                 </button>
                 <button onclick="abrirModal()" class="bg-indigo-500 hover:bg-indigo-400 text-white px-3.5 py-2 rounded-xl text-sm font-medium shadow transition flex items-center gap-1">
@@ -128,17 +113,16 @@
             btnInstalar.classList.add('flex');
         });
 
-        function instalarApp() {
+        btnInstalar.addEventListener('click', async () => {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        btnInstalar.classList.add('hidden');
-                    }
-                    deferredPrompt = null;
-                });
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    btnInstalar.classList.add('hidden');
+                }
+                deferredPrompt = null;
             }
-        }
+        });
 
         let creditos = JSON.parse(localStorage.getItem('mis_creditos')) || [];
 
@@ -224,10 +208,6 @@
             
             const diferenciaTiempo = fechaVencimiento - hoy;
             return Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
-        }
-
-        function renderizarApps() {
-            renderizarApp();
         }
 
         function renderizarApp() {
