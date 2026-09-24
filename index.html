@@ -28,8 +28,8 @@
                 <button id="btnInstalar" class="hidden bg-indigo-700 hover:bg-indigo-800 text-white px-3 py-2 rounded-xl text-sm font-medium transition items-center gap-1">
                     <i class="fa-solid fa-download"></i> Instalar
                 </button>
-                <!-- Botón Nuevo Corregido -->
-                <button type="button" onclick="abrirModal()" class="bg-indigo-500 hover:bg-indigo-400 text-white px-3.5 py-2 rounded-xl text-sm font-medium shadow transition flex items-center gap-1">
+                <!-- Botón con llamada directa -->
+                <button type="button" onclick="window.abrirModalForm()" class="bg-indigo-500 hover:bg-indigo-400 text-white px-3.5 py-2 rounded-xl text-sm font-medium shadow transition flex items-center gap-1 active:scale-95">
                     <i class="fa-solid fa-plus"></i> Nuevo
                 </button>
             </div>
@@ -60,10 +60,10 @@
         <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <h2 id="modalTitulo" class="text-lg font-bold text-slate-800">Agregar Crédito</h2>
-                <button type="button" onclick="cerrarModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+                <button type="button" onclick="window.cerrarModalForm()" class="text-slate-400 hover:text-slate-600 text-xl font-bold p-2">&times;</button>
             </div>
             
-            <form id="formCredito" onsubmit="guardarCredito(event)" class="space-y-4">
+            <form id="formCredito" onsubmit="window.guardarCreditoForm(event)" class="space-y-4">
                 <input type="hidden" id="creditoId">
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Nombre del Crédito / Entidad</label>
@@ -110,37 +110,11 @@
         </div>
     </div>
 
-    <!-- Lógica -->
+    <!-- Lógica Principal -->
     <script>
-        let deferredPrompt;
-        const btnInstalar = document.getElementById('btnInstalar');
+        let creditos = JSON.parse(localStorage.getItem('mis_creditos_v2')) || [];
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            btnInstalar.classList.remove('hidden');
-            btnInstalar.classList.add('flex');
-        });
-
-        btnInstalar.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    btnInstalar.classList.add('hidden');
-                }
-                deferredPrompt = null;
-            }
-        });
-
-        let creditos = JSON.parse(localStorage.getItem('mis_creditos')) || [];
-
-        function guardarEnLocalStorage() {
-            localStorage.setItem('mis_creditos', JSON.stringify(creditos));
-            renderizarApp();
-        }
-
-        function abrirModal(id = null) {
+        window.abrirModalForm = function(id = null) {
             const modal = document.getElementById('modalCredito');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -148,29 +122,31 @@
             if (id !== null) {
                 document.getElementById('modalTitulo').innerText = 'Editar Crédito';
                 const cred = creditos.find(c => c.id === id);
-                document.getElementById('creditoId').value = cred.id;
-                document.getElementById('nombre').value = cred.nombre;
-                document.getElementById('numCredito').value = cred.numCredito || '';
-                document.getElementById('valor').value = cred.valor;
-                document.getElementById('montoTotal').value = cred.montoTotal || '';
-                document.getElementById('diaPago').value = cred.diaPago;
-                document.getElementById('cuotaActual').value = cred.cuotaActual;
-                document.getElementById('cuotasTotales').value = cred.cuotasTotales;
-                document.getElementById('notas').value = cred.notas;
+                if(cred) {
+                    document.getElementById('creditoId').value = cred.id;
+                    document.getElementById('nombre').value = cred.nombre;
+                    document.getElementById('numCredito').value = cred.numCredito || '';
+                    document.getElementById('valor').value = cred.valor;
+                    document.getElementById('montoTotal').value = cred.montoTotal || '';
+                    document.getElementById('diaPago').value = cred.diaPago;
+                    document.getElementById('cuotaActual').value = cred.cuotaActual || '';
+                    document.getElementById('cuotasTotales').value = cred.cuotasTotales || '';
+                    document.getElementById('notas').value = cred.notas || '';
+                }
             } else {
                 document.getElementById('modalTitulo').innerText = 'Agregar Crédito';
                 document.getElementById('formCredito').reset();
                 document.getElementById('creditoId').value = '';
             }
-        }
+        };
 
-        function cerrarModal() {
+        window.cerrarModalForm = function() {
             const modal = document.getElementById('modalCredito');
             modal.classList.remove('flex');
             modal.classList.add('hidden');
-        }
+        };
 
-        function guardarCredito(e) {
+        window.guardarCreditoForm = function(e) {
             e.preventDefault();
             const id = document.getElementById('creditoId').value;
             const nuevoCredito = {
@@ -188,28 +164,35 @@
 
             if (id) {
                 const index = creditos.findIndex(c => c.id === Number(id));
-                nuevoCredito.pagado = creditos[index].pagado;
-                creditos[index] = nuevoCredito;
+                if(index !== -1) {
+                    nuevoCredito.pagado = creditos[index].pagado;
+                    creditos[index] = nuevoCredito;
+                }
             } else {
                 creditos.push(nuevoCredito);
             }
 
-            guardarEnLocalStorage();
-            cerrarModal();
-        }
+            localStorage.setItem('mis_creditos_v2', JSON.stringify(creditos));
+            window.cerrarModalForm();
+            renderizarApp();
+        };
 
-        function eliminarCredito(id) {
+        window.eliminarCredito = function(id) {
             if (confirm('¿Estás seguro de eliminar este crédito?')) {
                 creditos = creditos.filter(c => c.id !== id);
-                guardarEnLocalStorage();
+                localStorage.setItem('mis_creditos_v2', JSON.stringify(creditos));
+                renderizarApp();
             }
-        }
+        };
 
-        function togglePagado(id) {
+        window.togglePagado = function(id) {
             const cred = creditos.find(c => c.id === id);
-            cred.pagado = !cred.pagado;
-            guardarEnLocalStorage();
-        }
+            if(cred) {
+                cred.pagado = !cred.pagado;
+                localStorage.setItem('mis_creditos_v2', JSON.stringify(creditos));
+                renderizarApp();
+            }
+        };
 
         function calcularDiasRestantes(diaPago) {
             const hoy = new Date();
@@ -234,7 +217,7 @@
 
             if (creditos.length === 0) {
                 contenedor.innerHTML = `
-                    <div class="text-center py-12 bg-white rounded-2xl border border-slate-100 p-6">
+                    <div class="text-center py-12 bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
                         <i class="fa-solid fa-receipt text-slate-300 text-4xl mb-2"></i>
                         <p class="text-slate-500 font-medium">No tienes créditos agregados</p>
                         <p class="text-xs text-slate-400 mt-1">Toca el botón "Nuevo" para registrar el primero.</p>
@@ -276,8 +259,7 @@
                                 <span class="text-xs font-semibold px-2.5 py-1 rounded-full border ${alertaClase} inline-flex items-center gap-1.5 mb-1">
                                     <i class="fa-solid ${iconoAlerta}"></i> ${textoAlerta}
                                 </span>
-                                <h3 class="font-bold text-slate-800 text-base">${c.nombre}</h3>
-                                ${c.numCredito ? `<p class="text-xs text-indigo-600 font-medium mt-0.5"><i class="fa-solid fa-hashtag mr-1"></i>Crédito No: ${c.numCredito}</p>` : ''}
+                                <h3 class="font-bold text-slate-800 text-base">${c.nombre}</h3>${c.numCredito ? `<p class="text-xs text-indigo-600 font-medium mt-0.5"><i class="fa-solid fa-hashtag mr-1"></i>Crédito No: ${c.numCredito}</p>` : ''}
                                 ${c.notas ? `<p class="text-xs text-slate-400 mt-0.5"><i class="fa-solid fa-note-sticky mr-1"></i>${c.notas}</p>` : ''}
                             </div>
                             <div class="text-right">
@@ -290,18 +272,18 @@
                         ${c.montoTotal ? `
                         <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center text-xs">
                             <span class="text-slate-500">Monto Inicial: <b class="text-slate-700">$${c.montoTotal.toLocaleString()}</b></span>
-                            <span class="text-indigo-600 font-semibold">Cuota ${c.cuotaActual \vert{}\vert{} '-'} de${c.cuotasTotales || '-'}</span>
+                            <span class="text-indigo-600 font-semibold">Cuota ${c.cuotaActual || '-'} de ${c.cuotasTotales || '-'}</span>
                         </div>
                         ` : ''}
 
                         <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-xs text-slate-500">
-                            <span>Estado de cuota</span>
+                            <span>Acciones</span>
                             <div class="flex items-center gap-2">
-                                <button onclick="togglePagado(${c.id})" class="px-3 py-1.5 rounded-lg font-medium text-xs transition ${c.pagado ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'}">
+                                <button type="button" onclick="window.togglePagado(${c.id})" class="px-3 py-1.5 rounded-lg font-medium text-xs transition ${c.pagado ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'}">
                                     <i class="fa-solid ${c.pagado ? 'fa-rotate-left' : 'fa-check'} mr-1"></i> ${c.pagado ? 'Desmarcar' : 'Marcar Pagado'}
                                 </button>
-                                <button onclick="abrirModal(${c.id})" class="text-slate-400 hover:text-indigo-600 p-1"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="eliminarCredito(${c.id})" class="text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
+                                <button type="button" onclick="window.abrirModalForm(${c.id})" class="text-slate-400 hover:text-indigo-600 p-1.5"><i class="fa-solid fa-pen"></i></button>
+                                <button type="button" onclick="window.eliminarCredito(${c.id})" class="text-slate-400 hover:text-rose-600 p-1.5"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
                     </div>
@@ -309,7 +291,7 @@
                 contenedor.innerHTML += cardHTML;
             });
 
-            document.getElementById('totalMes').innerText = `$${totalMes.toLocaleString()}`;
+            document.getElementById('totalMes`").innerText = `$${totalMes.toLocaleString()}`;
             document.getElementById('totalPendientes').innerText = pendientesCount;
         }
 
